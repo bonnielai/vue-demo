@@ -11,12 +11,21 @@
     display: -webkit-flex;
     display: flex;
 }
+.inline-flex{
+  display: -webkit-inline-box;
+  display: -ms-inline-flexbox;
+  display: -webkit-inline-flex;
+  display: inline-flex;    
+}
 td, th {
   padding: 0;
 }
 table {
   border-spacing: 0;
   border-collapse: collapse;
+}
+.dt-container {
+  overflow: auto;
 }
 .dt-table {
   width: 100%;
@@ -29,10 +38,9 @@ table {
   width: 80%;
   margin: 0 auto;
 }
-.dt-container {
-  border: 1px solid #eee;
+.dt-table td {
+  word-break: break-word;
 }
-
 .dt-table>caption+thead>tr:first-child>td, .dt-table>caption+thead>tr:first-child>th, .dt-table>colgroup+thead>tr:first-child>td, .dt-table>colgroup+thead>tr:first-child>th, .dt-table>thead:first-child>tr:first-child>td, .dt-table>thead:first-child>tr:first-child>th {
   border-top: 0;
 }
@@ -135,13 +143,13 @@ button, input, optgroup, select, textarea {
   vertical-align: middle;
 }
 .pg-con {
-  width: 400px;
   margin: 0 auto;
   line-height: 36px;
   height: 36px;
 }
-nav.pagination-nav {
+.pagination-nav {
   padding: 10px 0;
+  text-align: center;
 }
 .data-total {
   margin-right: 10px;

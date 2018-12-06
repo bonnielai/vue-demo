@@ -1,23 +1,28 @@
 <template>
-  <div class="dt-container">
+  <div class="dt-container"  v-bind:style="{ width: tableStyle.width?tableStyle.width:'100%', height: tableStyle.height?tableStyle.height:'100%' }">
     <div class="table-module">
       <table class="dt-table">
         <thead>
             <tr>
-                <th ></th>
-                <th v-for="key in colList" v-text="key.colname" :width="key.colwidth"></th>
+                <th v-if="isSelectMode"></th>
+                <th v-for="key in colList" v-text="key.colname" v-bind:style="{width:key.colwidth}"></th>
             </tr>
         </thead>
         <tbody>
-            <tr v-for="data in lists" :key="data.id" :id="data.id?data.id:''">
-                <td ><input type="checkbox"
+            <tr v-if="lists.length > 0" v-for="data in lists" :key="data.id" :id="data.id?data.id:''">
+                <td v-if="isSelectMode"><input type="checkbox"
                       :checked="checkList.indexOf(data.id)>=0" 
                       @click="checkedOne(data.id)" />
                 </td>
-                <td v-for="key in colList" v-text="key.specOper?formatData(key.specOper,data[key.colname]):data[key.colname]"></td>
+                <td v-for="key in colList" v-text="typeof key.specOper === 'function'?formatData(key.specOper,data[key.colname]):data[key.colname]"></td>
+
+            </tr>
+            <tr v-if="lists.length == 0" >
+              <td v-if="isSelectMode"></td>
+              <td :colspan="tableColumn.length" class="no-result">没有数据</td>
             </tr>
         </tbody>
-        <tfoot>
+        <tfoot v-if="isSelectMode">
           <tr>
             <td class="check-col">
               <input type="checkbox"
@@ -26,7 +31,7 @@
                 @click="checkedAll"/>
             </td>
             <td :colspan="tableColumn.length">
-              <a href="javascript:void(0);" @click="batchOperMethod" class="link-batch">批量操作</a>
+              <a href="javascript:void(0);" @click="batchOperMethod" class="link-batch" v-text="batchOper&&batchOper.operName?batchOper.operName:'批量操作'"></a>
             </td>
           </tr>
         </tfoot>
@@ -34,7 +39,7 @@
   </div>
   <div v-if="isPaginatin" class="pagination-outer">
       <nav class="pagination-nav ">
-      <div class="pg-con flex">
+      <div class="pg-con inline-flex">
         <div class="data-total">
             共 <span v-text="totalcount"></span> 条
         </div>
@@ -48,13 +53,13 @@
                 <a href="javascript:void(0)" v-text="activeNum" @click="onPageClick(activeNum)"></a>
             </li>
             <li>
-                <a href="javascript:void(0)" aria-label="Next" :class="{'disabled':activeNum==pageTotal}" @click="onNextClick()">
+                <a href="javascript:void(0)" aria-label="Next" :class="{'disabled':activeNum>=pageTotal}" @click="onNextClick()">
                     <span aria-hidden="true">›</span>
                 </a>
             </li>
         </ul>
         <select v-model="pageLen">
-          <option v-for="pl in pageLens" :value="pl" v-text="pl" :selected="pl === pageLen ? true : false"></option>
+          <option v-for="pl in pageLengths" :value="pl" v-text="pl" :selected="pl === pageLen ? true : false"></option>
         </select>
         <div class="page-total">
             共 <span v-text="pageTotal"></span> 页
@@ -66,7 +71,6 @@
 </template>
 
 <script>
-
 export default {
   name: 'dataTable',
   data() {
@@ -75,6 +79,7 @@ export default {
       checkList: [],
       isCheckedAll: false,
       pages: [1],
+      pageLengths: [5, 10, 20],
       activeNum: 1,
       pageLen: 5, //显示条数
       pageTotal: 1, //总页数
@@ -84,6 +89,12 @@ export default {
     };
   },
   props: {
+    tableStyle: {
+      type: Object,
+      default: function() {
+        return {};
+      }
+    },
     // 是否请求服务器端数据
     isAsync: {
       type: Boolean,
@@ -132,7 +143,7 @@ export default {
         return [5, 10, 20];
       }
     },
-    //初始化时每页默认条数,若不在pageLens数组中，则默认选中第一个
+    //初始化时每页默认条数,若不在pageLengths数组中，则默认选中第一个
     initPageLen: {
       type: Number,
       default: 5
@@ -142,12 +153,11 @@ export default {
       type: Boolean,
       default: false
     },
-    //若支持选择模式，会出现批量操作按钮，触发此事件，传入批量选择的数据项id数组，和callback事件，用以刷新数据
+    //若支持选择模式，会出现批量操作按钮，触发此对象的operFun事件，传入批量选择的数据项id数组，和callback事件，用以刷新数据
     batchOper: {
-      type: Function,
-      default: function(ids, callback) {
-        console.log("you will oper these ids:" + ids.toString());
-        callback();
+      type: Object,
+      default: function() {
+        return {};
       }
     },
     //栏位的特殊控制
@@ -158,12 +168,17 @@ export default {
       }
     }
   },
-  /*components: {
-    pagination
-  },*/
   created: function() {
     let _this = this;
-    console.log("created"+_this.isAsync+";"+_this.tableData.length);
+    if (_this.pageLens && _this.pageLens.length > 0) {
+      _this.pageLengths = _this.pageLens;
+    }
+    if (
+      _this.initPageLen > 0 &&
+      _this.pageLengths.indexOf(_this.initPageLen) > -1
+    ) {
+      _this.pageLen = _this.initPageLen;
+    }
     if (!_this.isAsync && _this.tableData && _this.tableData.length > 0) {
       _this.totalList = _this.tableData;
       _this.lists = _this.totalList.slice(
@@ -172,12 +187,6 @@ export default {
       );
       _this.totalcount = _this.totalList.length;
       _this.pageTotal = Math.ceil(_this.totalcount / _this.pageLen);
-      if (
-        _this.initPageLen > 0 &&
-        _this.pageLens.indexOf(_this.initPageLen) > -1
-      ) {
-        _this.pageLen = _this.initPageLen;
-      }
     } else {
       this.getData();
     }
@@ -223,10 +232,16 @@ export default {
     },
     batchOperMethod() {
       var _this = this;
-      var cb = function() {
-        _this.refresh();
-      };
-      this.batchOper(_this.checkList, cb);
+      if (_this.checkList && _this.checkList.length > 0) {
+        if (_this.batchOper && typeof _this.batchOper.operFun === "function") {
+          var cb = function() {
+            _this.refresh();
+          };
+          _this.batchOper.operFun(_this.checkList, cb);
+        }
+      } else {
+        alert("请先选择要操作的项！");
+      }
     },
     // 点击页码刷新数据
     onPageClick(index) {
@@ -266,15 +281,15 @@ export default {
         this.pageTotal = Math.ceil(this.totalList.length / this.pageLen);
         this.lists = newData;
       } else {
-        if(this.searchIsPagination && this.isPaginatin){
+        if (this.searchIsPagination && this.isPaginatin) {
           this.searchParam.pageNum = this.activeNum;
           this.searchParam.pageSize = this.pageLen;
         }
-        console.log("searchParam:"+JSON.stringify(this.searchParam));
+        console.log("searchParam:" + JSON.stringify(this.searchParam));
         var opts = {
-          method: "POST",   //请求方法
-          body: JSON.stringify(this.searchParam),   //请求体
-        }
+          method: "POST", //请求方法
+          body: JSON.stringify(this.searchParam) //请求体
+        };
         fetch(this.searchUrl, opts)
           .then(res => {
             console.log(res);
@@ -290,19 +305,21 @@ export default {
           })
           .then(data => {
             console.log(data);
-            this.totalcount = data.totalCount;
             //服务器不分页，前端需要分页
             if (!this.searchIsPagination && this.isPaginatin) {
               this.totalList = data.tableData;
               this.pageTotal = Math.ceil(this.totalList.length / this.pageLen);
+              this.totalcount = this.totalList.length;
               this.lists = this.totalList.slice(
                 0 + (this.activeNum - 1) * this.pageLen,
                 this.activeNum * this.pageLen
               );
-            }else{
+            } else {
               this.lists = data.tableData;
-              if(this.lists.length > this.pageLen){
-                this.lists = this.lists.slice(0,this.pageLen);
+              this.totalcount = data.tableData&&data.totalcount<data.tableData.length?data.tableData.length:data.totalcount;
+              //服务器分页但是服务器传回来的
+              if (this.lists.length > this.pageLen) {
+                this.lists = this.lists.slice(0, this.pageLen);
               }
             }
           })
@@ -335,6 +352,5 @@ export default {
 };
 </script>
 <style>
-@import './datatable.css';
-
+@import "./datatable.css";
 </style>

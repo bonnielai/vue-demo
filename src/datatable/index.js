@@ -1,4 +1,4 @@
-import vueDataTable from './DataTable.vue' // 导入组件
+import vueDataTable from './DataTable.vue' 
 const dataTable = {
     install (Vue, options) {
         Vue.component(vueDataTable.name, vueDataTable)

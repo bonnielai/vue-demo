@@ -3,10 +3,17 @@
   <head>
     <meta charset="utf-8">
     <title>vue-demo</title>
+    <style>
+        .dt-outer {
+          width: 80%;
+          margin: 50px auto 0;
+        }
+    </style>
   </head>
   <body>
     <div id="app">
-      <data-table :is-async="isAsync" 
+      <div class="dt-outer">
+        <data-table :is-async="isAsync" 
                 :search-is-pagination="searchIsPagination"
                 :search-url="searchUrl"
                 :search-param="searchParam"
@@ -15,7 +22,8 @@
                 :table-data="tableData" 
                 :options="options">
 
-      </data-table>
+        </data-table>
+      </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
     <script src="../dist/datatable.js"></script>

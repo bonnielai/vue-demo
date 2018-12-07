@@ -1,7 +1,8 @@
 <template>
   <div class="dt-container"  v-bind:style="{ width: tableStyle.width?tableStyle.width:'100%', height: tableStyle.height?tableStyle.height:'100%' }">
     <div class="table-module">
-      <table class="dt-table">
+      <div class="table-error" v-if="!colList || colList.length == 0">初始化配置参数有误，表格初始化失败</div>
+      <table  v-if="colList && colList.length > 0" class="dt-table">
         <thead>
             <tr>
                 <th v-if="isSelectMode"></th>
@@ -285,14 +286,12 @@ export default {
           this.searchParam.pageNum = this.activeNum;
           this.searchParam.pageSize = this.pageLen;
         }
-        console.log("searchParam:" + JSON.stringify(this.searchParam));
         var opts = {
           method: "POST", //请求方法
           body: JSON.stringify(this.searchParam) //请求体
         };
         fetch(this.searchUrl, opts)
           .then(res => {
-            console.log(res);
             try {
               if (!res.ok) {
                 console.log("请求失败" + statusText);
@@ -304,7 +303,6 @@ export default {
             }
           })
           .then(data => {
-            console.log(data);
             //服务器不分页，前端需要分页
             if (!this.searchIsPagination && this.isPaginatin) {
               this.totalList = data.tableData;
@@ -352,5 +350,154 @@ export default {
 };
 </script>
 <style>
-@import "./datatable.css";
+* {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
+.inline-flex{
+  display: -webkit-inline-box;
+  display: -ms-inline-flexbox;
+  display: -webkit-inline-flex;
+  display: inline-flex;    
+}
+td, th {
+  padding: 0;
+}
+table {
+  border-spacing: 0;
+  border-collapse: collapse;
+}
+.dt-container {
+  overflow: hidden;
+}
+.table-module {
+  width: 100%;
+  overflow: auto;
+}
+.dt-table {
+  width: 100%;
+  text-align: center;
+  width: -webkit-max-content;
+  width: -moz-max-content;
+  width: max-content;
+}
+.dt-table .check-col {
+  width: 5px;
+}
+.dt-table td {
+  word-break: break-word;
+}
+thead {
+  background: #eaeaea;
+}
+.dt-table tbody tr:nth-of-type(even) {
+  background: #fbfbfb;
+}
+.dt-table tbody tr:hover{
+  background: #f2f3f5!important;
+}
+.table-error {
+  text-align: center;
+  width: 100%;
+  height: 100%;
+  padding: 10px 0;
+  border: solid 1px #ddd;
+}
+.dt-table>caption+thead>tr:first-child>td, .dt-table>caption+thead>tr:first-child>th, .dt-table>colgroup+thead>tr:first-child>td, .dt-table>colgroup+thead>tr:first-child>th, .dt-table>thead:first-child>tr:first-child>td, .dt-table>thead:first-child>tr:first-child>th {
+  border-top: 0;
+}
+.dt-table>tbody>tr>td, .dt-table>tbody>tr>th, .dt-table>tfoot>tr>td, .dt-table>tfoot>tr>th, .dt-table>thead>tr>td, .dt-table>thead>tr>th {
+  padding: 8px;
+  line-height: 1.42857143;
+  vertical-align: top;
+  border-top: 1px solid #eee;
+}
+.dt-table>tbody>tr>td, .dt-table>tbody>tr>th, .dt-table>tfoot>tr>td, .dt-table>tfoot>tr>th, .dt-table>thead>tr>td, .dt-table>thead>tr>th {
+  border: 1px solid #eee;
+}
+
+.pagination-page {
+  display: inline-block;
+  padding-left: 0;
+  margin: 0;
+  border-radius: 4px;
+}
+.pagination-page>li {
+  display: inline;
+}
+.pagination-page>li:first-child>a, .pagination-page>li:first-child>span {
+  margin-left: 0;
+  border-top-left-radius: 4px;
+  border-bottom-left-radius: 4px;
+}
+.pagination-page>li>a, .pagination-page>li>span {
+  position: relative;
+  float: left;
+  padding: 6px 12px;
+  margin-left: -1px;
+  line-height: 1.42857143;
+  color: #337ab7;
+  text-decoration: none;
+  background-color: #fff;
+  border: 1px solid #ddd;
+}
+.pagination-page>li:first-child>a, .pagination-page>li:first-child>span {
+  margin-left: 0;
+  border-top-left-radius: 4px;
+  border-bottom-left-radius: 4px;
+}
+.pagination-page>li>a, .pagination-page>li>span {
+  position: relative;
+  float: left;
+  padding: 6px 12px;
+  margin-left: -1px;
+  line-height: 1.42857143;
+  color: #337ab7;
+  text-decoration: none;
+  background-color: #fff;
+  border: 1px solid #ddd;
+}
+.pagination-page>li {
+  display: inline;
+}
+.pagination-nav {
+  padding: 10px 0;
+  text-align: center;
+}
+.pagination-page a.disabled {
+  pointer-events: none;
+  color: #ccc;
+}
+.page-total, .data-total {
+  display: inline-block;
+  vertical-align: middle;
+}
+.data-total {
+  margin-right: 10px;
+}
+.page-total {
+  margin-left: 10px;
+}
+.pg-con {
+  margin: 0 auto;
+  line-height: 36px;
+  height: 36px;
+}
+.pg-con select {
+margin-left: 10px;
+font: inherit;
+color: inherit;
+text-transform: none;
+height: 36px;
+line-height: 36px;
+padding: 0 10px;
+border: 0;
+}
+a.link-batch {
+  font-size: 16px;
+  color: #337ab7;
+  float: left;
+  display: block;
+}
 </style>

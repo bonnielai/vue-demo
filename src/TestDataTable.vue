@@ -23,13 +23,13 @@ export default {
   name: "TestDataTable",
   data() {
     return {
-      tableStyle: {width:'500px',height:'400px'},
+      tableStyle: {width:'1000px',height:'400px'},
       isAsync: false,
       searchIsPagination: false,
       searchUrl: "http://localhost:8899/",
       searchParam: {},
       //表格的头部部分数据
-      tableColumn: ["id", "name", "department", "no", "tel", "sex", "mark", "addr", "remark"],
+      tableColumn: ["id", "name", "department", "no",  "remark"],
       //表格的主体部分数据
       tableData: [
         {
@@ -145,7 +145,7 @@ export default {
       ],
       isPaginatin: true,
       pageLens: [],
-      initPageLen: 0,
+      initPageLen: 10,
       isSelectMode: true,
       batchOper: {
         operName: '批量删除',
@@ -169,7 +169,7 @@ export default {
             }
           })
           .then(data => {
-            alert(data.result);
+            alert(data.msg);
           })
           .catch(msg => {
             console.log(msg);
@@ -181,6 +181,7 @@ export default {
         {
           colname: "sex",
           colwidth: "100px",
+          alias: "性别",
           specOper: function(val) {
             return val == "0" ? "女" : "男";
           }
